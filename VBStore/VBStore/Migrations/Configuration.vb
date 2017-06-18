@@ -2,6 +2,8 @@ Imports System
 Imports System.Data.Entity
 Imports System.Data.Entity.Migrations
 Imports System.Linq
+Imports Microsoft.AspNet.Identity
+Imports Microsoft.AspNet.Identity.EntityFramework
 
 Namespace Migrations
 
@@ -23,8 +25,16 @@ Namespace Migrations
             '       New Customer() With {.FullName = "Andrew Peters"},
             '       New Customer() With {.FullName = "Brice Lambson"},
             '       New Customer() With {.FullName = "Rowan Miller"})
-        End Sub
+			Dim store As New RoleStore(Of IdentityRole)(context)
+			Dim manager As New RoleManager(Of IdentityRole)(store)
 
-    End Class
+			For Each role In AppConstants.DefaultRoles.Where(Function(r) Not manager.RoleExists(r))
+				manager.Create(New IdentityRole(role))
+			Next
+
+
+		End Sub
+
+	End Class
 
 End Namespace

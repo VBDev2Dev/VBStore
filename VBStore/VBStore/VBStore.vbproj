@@ -217,6 +217,7 @@
     </Compile>
     <Compile Include="Migrations\201706172344175_Initial Project.vb" />
     <Compile Include="Migrations\Configuration.vb" />
+    <Compile Include="Migrations\Utility\DefaultRoles.vb" />
     <Compile Include="Models\AccountViewModels.vb" />
     <Compile Include="Models\IdentityModels.vb" />
     <Compile Include="Models\ManageViewModels.vb" />
