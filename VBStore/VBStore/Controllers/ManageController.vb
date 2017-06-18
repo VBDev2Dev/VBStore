@@ -1,23 +1,23 @@
-﻿Imports System.Threading.Tasks
-Imports Microsoft.AspNet.Identity
+﻿Imports Microsoft.AspNet.Identity
 Imports Microsoft.AspNet.Identity.Owin
 Imports Microsoft.Owin.Security
+Imports System.Threading.Tasks
 
 <Authorize>
 Public Class ManageController
     Inherits Controller
-    Public Sub New()
+    Sub New()
     End Sub
 
-    Private _signInManager As ApplicationSignInManager
-    Private _userManager As ApplicationUserManager
+    Dim _signInManager As ApplicationSignInManager
+    Dim _userManager As ApplicationUserManager
 
-    Public Sub New(appUserManager As ApplicationUserManager, appSignInManager As ApplicationSignInManager)
-        UserManager = appUserManager 
+    Sub New(appUserManager As ApplicationUserManager, appSignInManager As ApplicationSignInManager)
+        UserManager = appUserManager
         SignInManager = appSignInManager
     End Sub
 
-    Public Property SignInManager() As ApplicationSignInManager
+    Property SignInManager() As ApplicationSignInManager
         Get
             Return If(_signInManager, HttpContext.GetOwinContext().Get(Of ApplicationSignInManager)())
         End Get
@@ -26,7 +26,7 @@ Public Class ManageController
         End Set
     End Property
 
-    Public Property UserManager() As ApplicationUserManager
+    Property UserManager() As ApplicationUserManager
         Get
             Return If(_userManager, HttpContext.GetOwinContext().GetUserManager(Of ApplicationUserManager)())
         End Get
@@ -37,8 +37,8 @@ Public Class ManageController
 
     '
     ' GET: /Manage/Index
-    Public Async Function Index(message As System.Nullable(Of ManageMessageId)) As Task(Of ActionResult)
-        ViewData!StatusMessage = If(message = ManageMessageId.ChangePasswordSuccess, "Your password has been changed.", If(message = ManageMessageId.SetPasswordSuccess, "Your password has been set.", If(message = ManageMessageId.SetTwoFactorSuccess, "Your two-factor authentication provider has been set.", If(message = ManageMessageId.[Error], "An error has occurred.", If(message = ManageMessageId.AddPhoneSuccess, "Your phone number was added.", If(message = ManageMessageId.RemovePhoneSuccess, "Your phone number was removed.", ""))))))
+    Async Function Index(message As ManageMessageId?) As Task(Of ActionResult)
+        ViewData!StatusMessage = If(message = ManageMessageId.ChangePasswordSuccess, "Your password has been changed.", If(message = ManageMessageId.SetPasswordSuccess, "Your password has been set.", If(message = ManageMessageId.SetTwoFactorSuccess, "Your two-factor authentication provider has been set.", If(message = ManageMessageId.[Error], "An error has occurred.", If(message = ManageMessageId.AddPhoneSuccess, "Your phone number was added.", If(message = ManageMessageId.RemovePhoneSuccess, "Your phone number was removed.", String.Empty))))))
 
         Dim userId = User.Identity.GetUserId()
         Dim model = New IndexViewModel() With {
@@ -55,8 +55,8 @@ Public Class ManageController
     ' POST: /Manage/RemoveLogin
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function RemoveLogin(loginProvider As String, providerKey As String) As Task(Of ActionResult)
-        Dim message As System.Nullable(Of ManageMessageId)
+    Async Function RemoveLogin(loginProvider As String, providerKey As String) As Task(Of ActionResult)
+        Dim message As ManageMessageId?
         Dim result = Await UserManager.RemoveLoginAsync(User.Identity.GetUserId(), New UserLoginInfo(loginProvider, providerKey))
         If result.Succeeded Then
             Dim userInfo = Await UserManager.FindByIdAsync(User.Identity.GetUserId())
@@ -67,14 +67,14 @@ Public Class ManageController
         Else
             message = ManageMessageId.[Error]
         End If
-        Return RedirectToAction("ManageLogins", New With {
+        Return RedirectToAction(NameOf(ManageLogins), New With {
               .Message = message
         })
     End Function
 
     '
     ' GET: /Manage/AddPhoneNumber
-    Public Function AddPhoneNumber() As ActionResult
+    Function AddPhoneNumber() As ActionResult
         Return View()
     End Function
 
@@ -82,7 +82,7 @@ Public Class ManageController
     ' POST: /Manage/AddPhoneNumber
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function AddPhoneNumber(model As AddPhoneNumberViewModel) As Task(Of ActionResult)
+    Async Function AddPhoneNumber(model As AddPhoneNumberViewModel) As Task(Of ActionResult)
         If Not ModelState.IsValid Then
             Return View(model)
         End If
@@ -95,7 +95,7 @@ Public Class ManageController
             }
             Await UserManager.SmsService.SendAsync(message)
         End If
-        Return RedirectToAction("VerifyPhoneNumber", New With {
+        Return RedirectToAction(NameOf(VerifyPhoneNumber), New With {
               .PhoneNumber = model.Number
         })
     End Function
@@ -104,31 +104,31 @@ Public Class ManageController
     ' POST: /Manage/EnableTwoFactorAuthentication
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function EnableTwoFactorAuthentication() As Task(Of ActionResult)
+    Async Function EnableTwoFactorAuthentication() As Task(Of ActionResult)
         Await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), True)
         Dim userInfo = Await UserManager.FindByIdAsync(User.Identity.GetUserId())
         If userInfo IsNot Nothing Then
             Await SignInManager.SignInAsync(userInfo, isPersistent:=False, rememberBrowser:=False)
         End If
-        Return RedirectToAction("Index", "Manage")
+        Return RedirectToAction(NameOf(Index), "Manage")
     End Function
 
     '
     ' POST: /Manage/DisableTwoFactorAuthentication
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function DisableTwoFactorAuthentication() As Task(Of ActionResult)
+    Async Function DisableTwoFactorAuthentication() As Task(Of ActionResult)
         Await UserManager.SetTwoFactorEnabledAsync(User.Identity.GetUserId(), False)
         Dim userInfo = Await UserManager.FindByIdAsync(User.Identity.GetUserId())
         If userInfo IsNot Nothing Then
             Await SignInManager.SignInAsync(userInfo, isPersistent:=False, rememberBrowser:=False)
         End If
-        Return RedirectToAction("Index", "Manage")
+        Return RedirectToAction(NameOf(Index), "Manage")
     End Function
 
     '
     ' GET: /Manage/VerifyPhoneNumber
-    Public Async Function VerifyPhoneNumber(phoneNumber As String) As Task(Of ActionResult)
+    Async Function VerifyPhoneNumber(phoneNumber As String) As Task(Of ActionResult)
         Dim code = Await UserManager.GenerateChangePhoneNumberTokenAsync(User.Identity.GetUserId(), phoneNumber)
         ' Send an SMS through the SMS provider to verify the phone number
         Return If(phoneNumber Is Nothing, View("Error"), View(New VerifyPhoneNumberViewModel() With {
@@ -140,7 +140,7 @@ Public Class ManageController
     ' POST: /Manage/VerifyPhoneNumber
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function VerifyPhoneNumber(model As VerifyPhoneNumberViewModel) As Task(Of ActionResult)
+    Async Function VerifyPhoneNumber(model As VerifyPhoneNumberViewModel) As Task(Of ActionResult)
         If Not ModelState.IsValid Then
             Return View(model)
         End If
@@ -150,12 +150,12 @@ Public Class ManageController
             If userInfo IsNot Nothing Then
                 Await SignInManager.SignInAsync(userInfo, isPersistent:=False, rememberBrowser:=False)
             End If
-            Return RedirectToAction("Index", New With {
+            Return RedirectToAction(NameOf(Index), New With {
                 .Message = ManageMessageId.AddPhoneSuccess
             })
         End If
         ' If we got this far, something failed, redisplay form
-        ModelState.AddModelError("", "Failed to verify phone")
+        ModelState.AddModelError(String.Empty, "Failed to verify phone")
         Return View(model)
     End Function
 
@@ -163,10 +163,10 @@ Public Class ManageController
     ' POST: /Manage/RemovePhoneNumber
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function RemovePhoneNumber() As Task(Of ActionResult)
+    Async Function RemovePhoneNumber() As Task(Of ActionResult)
         Dim result = Await UserManager.SetPhoneNumberAsync(User.Identity.GetUserId(), Nothing)
         If Not result.Succeeded Then
-            Return RedirectToAction("Index", New With {
+            Return RedirectToAction(NameOf(Index), New With {
                 .Message = ManageMessageId.[Error]
             })
         End If
@@ -174,14 +174,14 @@ Public Class ManageController
         If userInfo IsNot Nothing Then
             Await SignInManager.SignInAsync(userInfo, isPersistent:=False, rememberBrowser:=False)
         End If
-        Return RedirectToAction("Index", New With {
+        Return RedirectToAction(NameOf(Index), New With {
             .Message = ManageMessageId.RemovePhoneSuccess
         })
     End Function
 
     '
     ' GET: /Manage/ChangePassword
-    Public Function ChangePassword() As ActionResult
+    Function ChangePassword() As ActionResult
         Return View()
     End Function
 
@@ -189,7 +189,7 @@ Public Class ManageController
     ' POST: /Manage/ChangePassword
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function ChangePassword(model As ChangePasswordViewModel) As Task(Of ActionResult)
+    Async Function ChangePassword(model As ChangePasswordViewModel) As Task(Of ActionResult)
         If Not ModelState.IsValid Then
             Return View(model)
         End If
@@ -199,7 +199,7 @@ Public Class ManageController
             If userInfo IsNot Nothing Then
                 Await SignInManager.SignInAsync(userInfo, isPersistent:=False, rememberBrowser:=False)
             End If
-            Return RedirectToAction("Index", New With {
+            Return RedirectToAction(NameOf(Index), New With {
                 .Message = ManageMessageId.ChangePasswordSuccess
             })
         End If
@@ -209,7 +209,7 @@ Public Class ManageController
 
     '
     ' GET: /Manage/SetPassword
-    Public Function SetPassword() As ActionResult
+    Function SetPassword() As ActionResult
         Return View()
     End Function
 
@@ -217,7 +217,7 @@ Public Class ManageController
     ' POST: /Manage/SetPassword
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Async Function SetPassword(model As SetPasswordViewModel) As Task(Of ActionResult)
+    Async Function SetPassword(model As SetPasswordViewModel) As Task(Of ActionResult)
         If ModelState.IsValid Then
             Dim result = Await UserManager.AddPasswordAsync(User.Identity.GetUserId(), model.NewPassword)
             If result.Succeeded Then
@@ -225,7 +225,7 @@ Public Class ManageController
                 If userInfo IsNot Nothing Then
                     Await SignInManager.SignInAsync(userInfo, isPersistent:=False, rememberBrowser:=False)
                 End If
-                Return RedirectToAction("Index", New With {
+                Return RedirectToAction(NameOf(Index), New With {
                     .Message = ManageMessageId.SetPasswordSuccess
                 })
             End If
@@ -238,8 +238,8 @@ Public Class ManageController
 
     '
     ' GET: /Manage/ManageLogins
-    Public Async Function ManageLogins(message As System.Nullable(Of ManageMessageId)) As Task(Of ActionResult)
-        ViewData!StatusMessage = If(message = ManageMessageId.RemoveLoginSuccess, "The external login was removed.", If(message = ManageMessageId.[Error], "An error has occurred.", ""))
+    Async Function ManageLogins(message As ManageMessageId?) As Task(Of ActionResult)
+        ViewData!StatusMessage = If(message = ManageMessageId.RemoveLoginSuccess, "The external login was removed.", If(message = ManageMessageId.[Error], "An error has occurred.", String.Empty))
         Dim userInfo = Await UserManager.FindByIdAsync(User.Identity.GetUserId())
         If userInfo Is Nothing Then
             Return View("Error")
@@ -257,22 +257,22 @@ Public Class ManageController
     ' POST: /Manage/LinkLogin
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Function LinkLogin(provider As String) As ActionResult
+    Function LinkLogin(provider As String) As ActionResult
         ' Request a redirect to the external login provider to link a login for the current user
-        Return New AccountController.ChallengeResult(provider, Url.Action("LinkLoginCallback", "Manage"), User.Identity.GetUserId())
+        Return New AccountController.ChallengeResult(provider, Url.Action(NameOf(LinkLoginCallback), "Manage"), User.Identity.GetUserId())
     End Function
 
     '
     ' GET: /Manage/LinkLoginCallback
-    Public Async Function LinkLoginCallback() As Task(Of ActionResult)
+    Async Function LinkLoginCallback() As Task(Of ActionResult)
         Dim loginInfo = Await AuthenticationManager.GetExternalLoginInfoAsync(XsrfKey, User.Identity.GetUserId())
         If loginInfo Is Nothing Then
-            Return RedirectToAction("ManageLogins", New With {
+            Return RedirectToAction(NameOf(ManageLogins), New With {
                 .Message = ManageMessageId.[Error]
             })
         End If
         Dim result = Await UserManager.AddLoginAsync(User.Identity.GetUserId(), loginInfo.Login)
-        Return If(result.Succeeded, RedirectToAction("ManageLogins"), RedirectToAction("ManageLogins", New With {
+        Return If(result.Succeeded, RedirectToAction(NameOf(ManageLogins)), RedirectToAction(NameOf(ManageLogins), New With {
             .Message = ManageMessageId.[Error]
         }))
     End Function
@@ -288,7 +288,7 @@ Public Class ManageController
 
 #Region "Helpers"
     ' Used for XSRF protection when adding external logins
-    Private Const XsrfKey As String = "XsrfId"
+    Const XsrfKey As String = "XsrfId"
 
     Private ReadOnly Property AuthenticationManager() As IAuthenticationManager
         Get
@@ -298,7 +298,7 @@ Public Class ManageController
 
     Private Sub AddErrors(result As IdentityResult)
         For Each [error] In result.Errors
-            ModelState.AddModelError("", [error])
+            ModelState.AddModelError(String.Empty, [error])
         Next
     End Sub
 
@@ -318,7 +318,7 @@ Public Class ManageController
         Return False
     End Function
 
-    Public Enum ManageMessageId
+    Enum ManageMessageId
         AddPhoneSuccess
         ChangePasswordSuccess
         SetTwoFactorSuccess

@@ -2,12 +2,11 @@
 Imports Microsoft.AspNet.Identity.Owin
 Imports Microsoft.Owin
 Imports Microsoft.Owin.Security.Cookies
-Imports Microsoft.Owin.Security.Google
 Imports Owin
 
 Partial Public Class Startup
     ' For more information on configuring authentication, please visit http://go.microsoft.com/fwlink/?LinkId=301864
-    Public Sub ConfigureAuth(app As IAppBuilder)
+    Sub ConfigureAuth(app As IAppBuilder)
         ' Configure the db context, user manager and signin manager to use a single instance per request
         app.CreatePerOwinContext(AddressOf ApplicationDbContext.Create)
         app.CreatePerOwinContext(Of ApplicationUserManager)(AddressOf ApplicationUserManager.Create)

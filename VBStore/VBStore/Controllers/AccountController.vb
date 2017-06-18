@@ -1,47 +1,45 @@
-﻿Imports System.Globalization
-Imports System.Security.Claims
-Imports System.Threading.Tasks
-Imports Microsoft.AspNet.Identity
+﻿Imports Microsoft.AspNet.Identity
 Imports Microsoft.AspNet.Identity.Owin
 Imports Microsoft.Owin.Security
-Imports Owin
+Imports System.Threading.Tasks
 
 <Authorize>
 Public Class AccountController
     Inherits Controller
-    Private _signInManager As ApplicationSignInManager
-    Private _userManager As ApplicationUserManager
 
-    Public Sub New()
+    Dim _signInManager As ApplicationSignInManager
+    Dim _userManager As ApplicationUserManager
+
+    Sub New()
     End Sub
 
-    Public Sub New(appUserMan As ApplicationUserManager, signInMan As ApplicationSignInManager)
+    Sub New(appUserMan As ApplicationUserManager, signInMan As ApplicationSignInManager)
         UserManager = appUserMan
         SignInManager = signInMan
     End Sub
 
-    Public Property SignInManager() As ApplicationSignInManager
+    Property SignInManager() As ApplicationSignInManager
         Get
             Return If(_signInManager, HttpContext.GetOwinContext().[Get](Of ApplicationSignInManager)())
         End Get
         Private Set
-            _signInManager = value
+            _signInManager = Value
         End Set
     End Property
 
-    Public Property UserManager() As ApplicationUserManager
+    Property UserManager() As ApplicationUserManager
         Get
             Return If(_userManager, HttpContext.GetOwinContext().GetUserManager(Of ApplicationUserManager)())
         End Get
         Private Set
-            _userManager = value
+            _userManager = Value
         End Set
     End Property
 
     '
     ' GET: /Account/Login
     <AllowAnonymous>
-    Public Function Login(returnUrl As String) As ActionResult
+    Function Login(returnUrl As String) As ActionResult
         ViewData!ReturnUrl = returnUrl
         Return View()
     End Function
@@ -51,26 +49,26 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Async Function Login(model As LoginViewModel, returnUrl As String) As Task(Of ActionResult)
+    Async Function Login(model As LoginViewModel, returnUrl As String) As Task(Of ActionResult)
         If Not ModelState.IsValid Then
             Return View(model)
         End If
 
         ' This doesn't count login failures towards account lockout
         ' To enable password failures to trigger account lockout, change to shouldLockout := True
-        Dim result = Await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout := False)
+        Dim result = Await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout:=False)
         Select Case result
             Case SignInStatus.Success
                 Return RedirectToLocal(returnUrl)
             Case SignInStatus.LockedOut
                 Return View("Lockout")
             Case SignInStatus.RequiresVerification
-                Return RedirectToAction("SendCode", New With {
+                Return RedirectToAction(NameOf(SendCode), New With {
                     .ReturnUrl = returnUrl,
                     .RememberMe = model.RememberMe
                 })
             Case Else
-                ModelState.AddModelError("", "Invalid login attempt.")
+                ModelState.AddModelError(String.Empty, "Invalid login attempt.")
                 Return View(model)
         End Select
     End Function
@@ -78,7 +76,7 @@ Public Class AccountController
     '
     ' GET: /Account/VerifyCode
     <AllowAnonymous>
-    Public Async Function VerifyCode(provider As String, returnUrl As String, rememberMe As Boolean) As Task(Of ActionResult)
+    Async Function VerifyCode(provider As String, returnUrl As String, rememberMe As Boolean) As Task(Of ActionResult)
         ' Require that the user has already logged in via username/password or external login
         If Not Await SignInManager.HasBeenVerifiedAsync() Then
             Return View("Error")
@@ -95,23 +93,23 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Async Function VerifyCode(model As VerifyCodeViewModel) As Task(Of ActionResult)
+    Async Function VerifyCode(model As VerifyCodeViewModel) As Task(Of ActionResult)
         If Not ModelState.IsValid Then
             Return View(model)
         End If
 
-        ' The following code protects for brute force attacks against the two factor codes. 
-        ' If a user enters incorrect codes for a specified amount of time then the user account 
-        ' will be locked out for a specified amount of time. 
+        ' The following code protects for brute force attacks against the two factor codes.
+        ' If a user enters incorrect codes for a specified amount of time then the user account
+        ' will be locked out for a specified amount of time.
         ' You can configure the account lockout settings in IdentityConfig
-        Dim result = Await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent := model.RememberMe, rememberBrowser := model.RememberBrowser)
+        Dim result = Await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent:=model.RememberMe, rememberBrowser:=model.RememberBrowser)
         Select Case result
             Case SignInStatus.Success
                 Return RedirectToLocal(model.ReturnUrl)
             Case SignInStatus.LockedOut
                 Return View("Lockout")
             Case Else
-                ModelState.AddModelError("", "Invalid code.")
+                ModelState.AddModelError(String.Empty, "Invalid code.")
                 Return View(model)
         End Select
     End Function
@@ -119,7 +117,7 @@ Public Class AccountController
     '
     ' GET: /Account/Register
     <AllowAnonymous>
-    Public Function Register() As ActionResult
+    Function Register() As ActionResult
         Return View()
     End Function
 
@@ -128,7 +126,7 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Async Function Register(model As RegisterViewModel) As Task(Of ActionResult)
+    Async Function Register(model As RegisterViewModel) As Task(Of ActionResult)
         If ModelState.IsValid Then
             Dim user = New ApplicationUser() With {
                 .UserName = model.Email,
@@ -136,7 +134,7 @@ Public Class AccountController
             }
             Dim result = Await UserManager.CreateAsync(user, model.Password)
             If result.Succeeded Then
-                Await SignInManager.SignInAsync(user, isPersistent := False, rememberBrowser := False)
+                Await SignInManager.SignInAsync(user, isPersistent:=False, rememberBrowser:=False)
 
                 ' For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
                 ' Send an email with this link
@@ -159,7 +157,7 @@ Public Class AccountController
     '
     ' GET: /Account/ConfirmEmail
     <AllowAnonymous>
-    Public Async Function ConfirmEmail(userId As String, code As String) As Task(Of ActionResult)
+    Async Function ConfirmEmail(userId As String, code As String) As Task(Of ActionResult)
         If userId Is Nothing OrElse code Is Nothing Then
             Return View("Error")
         End If
@@ -170,7 +168,7 @@ Public Class AccountController
     '
     ' GET: /Account/ForgotPassword
     <AllowAnonymous>
-    Public Function ForgotPassword() As ActionResult
+    Function ForgotPassword() As ActionResult
         Return View()
     End Function
 
@@ -179,12 +177,12 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Async Function ForgotPassword(model As ForgotPasswordViewModel) As Task(Of ActionResult)
+    Async Function ForgotPassword(model As ForgotPasswordViewModel) As Task(Of ActionResult)
         If ModelState.IsValid Then
             Dim user = Await UserManager.FindByNameAsync(model.Email)
             If user Is Nothing OrElse Not (Await UserManager.IsEmailConfirmedAsync(user.Id)) Then
                 ' Don't reveal that the user does not exist or is not confirmed
-                Return View("ForgotPasswordConfirmation")
+                Return View(NameOf(ForgotPasswordConfirmation))
             End If
             ' For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=320771
             ' Send an email with this link
@@ -201,14 +199,14 @@ Public Class AccountController
     '
     ' GET: /Account/ForgotPasswordConfirmation
     <AllowAnonymous>
-    Public Function ForgotPasswordConfirmation() As ActionResult
+    Function ForgotPasswordConfirmation() As ActionResult
         Return View()
     End Function
 
     '
     ' GET: /Account/ResetPassword
     <AllowAnonymous>
-    Public Function ResetPassword(code As String) As ActionResult
+    Function ResetPassword(code As String) As ActionResult
         Return If(code Is Nothing, View("Error"), View())
     End Function
 
@@ -217,18 +215,18 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Async Function ResetPassword(model As ResetPasswordViewModel) As Task(Of ActionResult)
+    Async Function ResetPassword(model As ResetPasswordViewModel) As Task(Of ActionResult)
         If Not ModelState.IsValid Then
             Return View(model)
         End If
         Dim user = Await UserManager.FindByNameAsync(model.Email)
         If user Is Nothing Then
             ' Don't reveal that the user does not exist
-            Return RedirectToAction("ResetPasswordConfirmation", "Account")
+            Return RedirectToAction(NameOf(ResetPasswordConfirmation), "Account")
         End If
         Dim result = Await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password)
         If result.Succeeded Then
-            Return RedirectToAction("ResetPasswordConfirmation", "Account")
+            Return RedirectToAction(NameOf(ResetPasswordConfirmation), "Account")
         End If
         AddErrors(result)
         Return View()
@@ -237,7 +235,7 @@ Public Class AccountController
     '
     ' GET: /Account/ResetPasswordConfirmation
     <AllowAnonymous>
-    Public Function ResetPasswordConfirmation() As ActionResult
+    Function ResetPasswordConfirmation() As ActionResult
         Return View()
     End Function
 
@@ -246,9 +244,9 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Function ExternalLogin(provider As String, returnUrl As String) As ActionResult
+    Function ExternalLogin(provider As String, returnUrl As String) As ActionResult
         ' Request a redirect to the external login provider
-        Return New ChallengeResult(provider, Url.Action("ExternalLoginCallback", "Account", New With {
+        Return New ChallengeResult(provider, Url.Action(NameOf(ExternalLoginCallback), "Account", New With {
             .ReturnUrl = returnUrl
         }))
     End Function
@@ -256,7 +254,7 @@ Public Class AccountController
     '
     ' GET: /Account/SendCode
     <AllowAnonymous>
-    Public Async Function SendCode(returnUrl As String, rememberMe As Boolean) As Task(Of ActionResult)
+    Async Function SendCode(returnUrl As String, rememberMe As Boolean) As Task(Of ActionResult)
         Dim userId = Await SignInManager.GetVerifiedUserIdAsync()
         If userId Is Nothing Then
             Return View("Error")
@@ -278,7 +276,7 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Async Function SendCode(model As SendCodeViewModel) As Task(Of ActionResult)
+    Async Function SendCode(model As SendCodeViewModel) As Task(Of ActionResult)
         If Not ModelState.IsValid Then
             Return View()
         End If
@@ -287,7 +285,7 @@ Public Class AccountController
         If Not Await SignInManager.SendTwoFactorCodeAsync(model.SelectedProvider) Then
             Return View("Error")
         End If
-        Return RedirectToAction("VerifyCode", New With { _
+        Return RedirectToAction(NameOf(VerifyCode), New With {
             .Provider = model.SelectedProvider,
             .ReturnUrl = model.ReturnUrl,
             .RememberMe = model.RememberMe
@@ -297,21 +295,21 @@ Public Class AccountController
     '
     ' GET: /Account/ExternalLoginCallback
     <AllowAnonymous>
-    Public Async Function ExternalLoginCallback(returnUrl As String) As Task(Of ActionResult)
+    Async Function ExternalLoginCallback(returnUrl As String) As Task(Of ActionResult)
         Dim loginInfo = Await AuthenticationManager.GetExternalLoginInfoAsync()
         If loginInfo Is Nothing Then
-            Return RedirectToAction("Login")
+            Return RedirectToAction(NameOf(Login))
         End If
 
         ' Sign in the user with this external login provider if the user already has a login
-        Dim result = Await SignInManager.ExternalSignInAsync(loginInfo, isPersistent := False)
+        Dim result = Await SignInManager.ExternalSignInAsync(loginInfo, isPersistent:=False)
         Select Case result
             Case SignInStatus.Success
                 Return RedirectToLocal(returnUrl)
             Case SignInStatus.LockedOut
                 Return View("Lockout")
             Case SignInStatus.RequiresVerification
-                Return RedirectToAction("SendCode", New With {
+                Return RedirectToAction(NameOf(SendCode), New With {
                     .ReturnUrl = returnUrl,
                     .RememberMe = False
                 })
@@ -319,7 +317,7 @@ Public Class AccountController
                 ' If the user does not have an account, then prompt the user to create an account
                 ViewData!ReturnUrl = returnUrl
                 ViewData!LoginProvider = loginInfo.Login.LoginProvider
-                Return View("ExternalLoginConfirmation", New ExternalLoginConfirmationViewModel() With {
+                Return View(NameOf(ExternalLoginConfirmation), New ExternalLoginConfirmationViewModel() With {
                     .Email = loginInfo.Email
                 })
         End Select
@@ -330,30 +328,30 @@ Public Class AccountController
     <HttpPost>
     <AllowAnonymous>
     <ValidateAntiForgeryToken>
-    Public Async Function ExternalLoginConfirmation(model As ExternalLoginConfirmationViewModel, returnUrl As String) As Task(Of ActionResult)
+    Async Function ExternalLoginConfirmation(model As ExternalLoginConfirmationViewModel, returnUrl As String) As Task(Of ActionResult)
         If User.Identity.IsAuthenticated Then
-          Return RedirectToAction("Index", "Manage")
+            Return RedirectToAction("Index", "Manage")
         End If
 
         If ModelState.IsValid Then
-          ' Get the information about the user from the external login provider
-          Dim info = Await AuthenticationManager.GetExternalLoginInfoAsync()
-          If info Is Nothing Then
-              Return View("ExternalLoginFailure")
-          End If
-          Dim userInfo = New ApplicationUser() With {
-              .UserName = model.Email,
-              .Email = model.Email
-          }
-          Dim result = Await UserManager.CreateAsync(userInfo)
-          If result.Succeeded Then
-            result = Await UserManager.AddLoginAsync(userInfo.Id, info.Login)
-            If result.Succeeded Then
-                Await SignInManager.SignInAsync(userInfo, isPersistent := False, rememberBrowser := False)
-                Return RedirectToLocal(returnUrl)
+            ' Get the information about the user from the external login provider
+            Dim info = Await AuthenticationManager.GetExternalLoginInfoAsync()
+            If info Is Nothing Then
+                Return View(NameOf(ExternalLoginFailure))
             End If
-          End If
-          AddErrors(result)
+            Dim userInfo = New ApplicationUser() With {
+                .UserName = model.Email,
+                .Email = model.Email
+            }
+            Dim result = Await UserManager.CreateAsync(userInfo)
+            If result.Succeeded Then
+                result = Await UserManager.AddLoginAsync(userInfo.Id, info.Login)
+                If result.Succeeded Then
+                    Await SignInManager.SignInAsync(userInfo, isPersistent:=False, rememberBrowser:=False)
+                    Return RedirectToLocal(returnUrl)
+                End If
+            End If
+            AddErrors(result)
         End If
 
         ViewData!ReturnUrl = returnUrl
@@ -364,7 +362,7 @@ Public Class AccountController
     ' POST: /Account/LogOff
     <HttpPost>
     <ValidateAntiForgeryToken>
-    Public Function LogOff() As ActionResult
+    Function LogOff() As ActionResult
         AuthenticationManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie)
         Return RedirectToAction("Index", "Home")
     End Function
@@ -372,7 +370,7 @@ Public Class AccountController
     '
     ' GET: /Account/ExternalLoginFailure
     <AllowAnonymous>
-    Public Function ExternalLoginFailure() As ActionResult
+    Function ExternalLoginFailure() As ActionResult
         Return View()
     End Function
 
@@ -391,9 +389,9 @@ Public Class AccountController
         MyBase.Dispose(disposing)
     End Sub
 
-    #Region "Helpers"
+#Region "Helpers"
     ' Used for XSRF protection when adding external logins
-    Private Const XsrfKey As String = "XsrfId"
+    Const XsrfKey As String = "XsrfId"
 
     Private ReadOnly Property AuthenticationManager() As IAuthenticationManager
         Get
@@ -403,7 +401,7 @@ Public Class AccountController
 
     Private Sub AddErrors(result As IdentityResult)
         For Each [error] In result.Errors
-            ModelState.AddModelError("", [error])
+            ModelState.AddModelError(String.Empty, [error])
         Next
     End Sub
 
@@ -416,29 +414,29 @@ Public Class AccountController
 
     Friend Class ChallengeResult
         Inherits HttpUnauthorizedResult
-        Public Sub New(provider As String, redirectUri As String)
+        Sub New(provider As String, redirectUri As String)
             Me.New(provider, redirectUri, Nothing)
         End Sub
 
-        Public Sub New(provider As String, redirect As String, user As String)
+        Sub New(provider As String, redirect As String, user As String)
             LoginProvider = provider
             RedirectUri = redirect
             UserId = user
         End Sub
 
-        Public Property LoginProvider As String
-        Public Property RedirectUri As String
-        Public Property UserId As String
+        Property LoginProvider As String
+        Property RedirectUri As String
+        Property UserId As String
 
-        Public Overrides Sub ExecuteResult(context As ControllerContext)
+        Overrides Sub ExecuteResult(context As ControllerContext)
             Dim properties = New AuthenticationProperties() With {
                 .RedirectUri = RedirectUri
             }
             If UserId IsNot Nothing Then
-              properties.Dictionary(XsrfKey) = UserId
+                properties.Dictionary(XsrfKey) = UserId
             End If
             context.HttpContext.GetOwinContext().Authentication.Challenge(properties, LoginProvider)
         End Sub
     End Class
-    #End Region
+#End Region
 End Class

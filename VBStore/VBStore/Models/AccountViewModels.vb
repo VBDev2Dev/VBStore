@@ -2,99 +2,99 @@
 
 Public Class ExternalLoginConfirmationViewModel
     <Required>
-    <Display(Name:="Email")>
-    Public Property Email As String
+    <Display(Name:=NameOf(Email))>
+    Property Email As String
 End Class
 
 Public Class ExternalLoginListViewModel
-    Public Property ReturnUrl As String
+    Property ReturnUrl As String
 End Class
 
 Public Class SendCodeViewModel
-    Public Property SelectedProvider As String
-    Public Property Providers As ICollection(Of System.Web.Mvc.SelectListItem)
-    Public Property ReturnUrl As String
-    Public Property RememberMe As Boolean
+    Property SelectedProvider As String
+    Property Providers As ICollection(Of SelectListItem)
+    Property ReturnUrl As String
+    Property RememberMe As Boolean
 End Class
 
 Public Class VerifyCodeViewModel
     <Required>
-    Public Property Provider As String
-    
-    <Required>
-    <Display(Name:="Code")>
-    Public Property Code As String
-    
-    Public Property ReturnUrl As String
-    
-    <Display(Name:="Remember this browser?")>
-    Public Property RememberBrowser As Boolean
+    Property Provider As String
 
-    Public Property RememberMe As Boolean
+    <Required>
+    <Display(Name:=NameOf(Code))>
+    Property Code As String
+
+    Property ReturnUrl As String
+
+    <Display(Name:="Remember this browser?")>
+    Property RememberBrowser As Boolean
+
+    Property RememberMe As Boolean
 End Class
 
 Public Class ForgotViewModel
     <Required>
-    <Display(Name:="Email")>
-    Public Property Email As String
+    <Display(Name:=NameOf(Email))>
+    Property Email As String
 End Class
 
 Public Class LoginViewModel
     <Required>
-    <Display(Name:="Email")>
+    <Display(Name:=NameOf(Email))>
     <EmailAddress>
-    Public Property Email As String
+    Property Email As String
 
     <Required>
     <DataType(DataType.Password)>
-    <Display(Name:="Password")>
-    Public Property Password As String
+    <Display(Name:=NameOf(Password))>
+    Property Password As String
 
     <Display(Name:="Remember me?")>
-    Public Property RememberMe As Boolean
+    Property RememberMe As Boolean
 End Class
 
 Public Class RegisterViewModel
     <Required>
     <EmailAddress>
-    <Display(Name:="Email")>
-    Public Property Email As String
+    <Display(Name:=NameOf(Email))>
+    Property Email As String
 
     <Required>
     <StringLength(100, ErrorMessage:="The {0} must be at least {2} characters long.", MinimumLength:=6)>
     <DataType(DataType.Password)>
-    <Display(Name:="Password")>
-    Public Property Password As String
+    <Display(Name:=NameOf(Password))>
+    Property Password As String
 
     <DataType(DataType.Password)>
     <Display(Name:="Confirm password")>
-    <Compare("Password", ErrorMessage:="The password and confirmation password do not match.")>
-    Public Property ConfirmPassword As String
+    <Compare(NameOf(Password), ErrorMessage:="The password and confirmation password do not match.")>
+    Property ConfirmPassword As String
 End Class
 
 Public Class ResetPasswordViewModel
     <Required>
     <EmailAddress>
-    <Display(Name:="Email")>
-    Public Property Email() As String
+    <Display(Name:=NameOf(Email))>
+    Property Email() As String
 
     <Required>
     <StringLength(100, ErrorMessage:="The {0} must be at least {2} characters long.", MinimumLength:=6)>
     <DataType(DataType.Password)>
-    <Display(Name:="Password")>
-    Public Property Password() As String
+    <Display(Name:=NameOf(Password))>
+    Property Password() As String
 
     <DataType(DataType.Password)>
     <Display(Name:="Confirm password")>
-    <Compare("Password", ErrorMessage:="The password and confirmation password do not match.")>
-    Public Property ConfirmPassword() As String
+    <Compare(NameOf(Password), ErrorMessage:="The password and confirmation password do not match.")>
+    Property ConfirmPassword() As String
 
-    Public Property Code() As String
+    Property Code() As String
 End Class
 
 Public Class ForgotPasswordViewModel
     <Required>
     <EmailAddress>
-    <Display(Name:="Email")>
-    Public Property Email() As String
+    <Display(Name:=NameOf(Email))>
+    Property Email() As String
 End Class
