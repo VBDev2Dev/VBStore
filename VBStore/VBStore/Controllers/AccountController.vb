@@ -144,6 +144,9 @@ Public Class AccountController
                 ' Dim callbackUrl = Url.Action("ConfirmEmail", "Account", New With { .userId = user.Id, .code = code }, protocol := Request.Url.Scheme)
                 ' Await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=""" & callbackUrl & """>here</a>")
 
+                'Add user to default role
+                Await UserManager.AddToRoleAsync(user.Id, AppConstants.DefaultRole)
+
                 Return RedirectToAction("Index", "Home")
             End If
             AddErrors(result)
